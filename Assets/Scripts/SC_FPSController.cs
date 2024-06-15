@@ -1,29 +1,33 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 
 public class SC_FPSController : MonoBehaviour
 {
-    public float walkingSpeed = 7.5f;
-    public float runningSpeed = 11.5f;
-    public float jumpSpeed = 8.0f;
-    public float gravity = 20.0f;
-    public Camera playerCamera;
-    public float lookSpeed = 2.0f;
-    public float lookXLimit = 45.0f;
+    private const float _walkingSpeed = 7.5f;
+    private const float _runningSpeed = 11.5f;
+    private const float _jumpSpeed = 8.0f;
+    private const float _gravity = 20.0f;
+    private const float _lookSpeed = 2.0f;
+    private const float _lookXLimit = 45.0f;
+    private bool _canMove = true;
+    private Vector3 _prevPos;
 
-    CharacterController characterController;
-    Vector3 moveDirection = Vector3.zero;
-    float rotationX = 0;
+    private CharacterController _controller;
+    private Vector3 _moveDirection = Vector3.zero;
+    private float _rotationH = 0;
+    private float _rotationV = 0;
+    private float _cameraShakeCycle = 0;
+    private float _shakeStrength = 1f;
+    private float _shakeSpeed = 1f;
+    private float _distance = 0f;
 
-    [HideInInspector]
-    public bool canMove = true;
+    [SerializeField] private Camera _camera;
 
     void Start()
     {
-        characterController = GetComponent<CharacterController>();
+        _controller = GetComponent<CharacterController>();
+        _prevPos = transform.position;
 
         // блок курсора
         Cursor.lockState = CursorLockMode.Locked;
@@ -32,41 +36,34 @@ public class SC_FPSController : MonoBehaviour
 
     void Update()
     {
-        //земля
-        Vector3 forward = transform.TransformDirection(Vector3.forward);
-        Vector3 right = transform.TransformDirection(Vector3.right);
         // бег
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
-        float curSpeedX = canMove ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Vertical") : 0;
-        float curSpeedY = canMove ? (isRunning ? runningSpeed : walkingSpeed) * Input.GetAxis("Horizontal") : 0;
-        float movementDirectionY = moveDirection.y;
-        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+        float curSpeedX = _canMove ? (isRunning ? _runningSpeed : _walkingSpeed) * Input.GetAxis("Horizontal") : 0;
+        float curSpeedZ = _canMove ? (isRunning ? _runningSpeed : _walkingSpeed) * Input.GetAxis("Vertical") : 0;
+        float movementDirectionY = _moveDirection.y;
+        _moveDirection = (transform.forward * curSpeedZ) + (transform.right * curSpeedX);
+        _moveDirection.y = (Input.GetButton("Jump") && _canMove && _controller.isGrounded) ? _jumpSpeed : movementDirectionY;
 
-        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
+        if (!_controller.isGrounded)
         {
-            moveDirection.y = jumpSpeed;
-        }
-        else
-        {
-            moveDirection.y = movementDirectionY;
-        }
-
-
-        if (!characterController.isGrounded)
-        {
-            moveDirection.y -= gravity * Time.deltaTime;
+            _moveDirection.y -= _gravity * Time.deltaTime;
         }
 
         // движение контроллера
-        characterController.Move(moveDirection * Time.deltaTime);
+        _controller.Move(_moveDirection * Time.deltaTime);
 
         // игрок и камера
-        if (canMove)
+        if (_canMove)
         {
-            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
-            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeed, 0);
+            _rotationV += -Input.GetAxis("Mouse Y") * _lookSpeed;
+            _rotationV = Mathf.Clamp(_rotationV, -_lookXLimit, _lookXLimit);
+            _camera.transform.localRotation = Quaternion.Euler(_rotationV, 0, 0);
+            _rotationH += Input.GetAxis("Mouse X") * _lookSpeed;
         }
+
+        _distance += (transform.position - _prevPos).magnitude;
+        _prevPos = transform.position;
+        _cameraShakeCycle = Mathf.Sin(_distance * _shakeSpeed) * _shakeStrength;
+        transform.rotation = Quaternion.Euler(0, _rotationH, _cameraShakeCycle);
     }
 }
