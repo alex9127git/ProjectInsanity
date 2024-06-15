@@ -1,4 +1,0 @@
-repository "ProjectInsanity@BIG_RAC@cloud"
-  path "/"
-    br "/main"
-    co "/main"
