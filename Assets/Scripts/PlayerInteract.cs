@@ -3,18 +3,28 @@ using UnityEngine.UI;
 
 public class PlayerInteract : MonoBehaviour
 {
-    [SerializeField] Image image;
+    private Collider interactHitbox;
+    [SerializeField] private Image UI;
+
+    private void Start()
+    {
+        interactHitbox = GetComponent<Collider>();
+    }
 
     private void OnCollisionStay(Collision collision)
     {
-        if (collision.gameObject.GetComponent<Item>() is Item item)
+        if (collision.gameObject.GetComponent<Interactable>() is Interactable interactable)
         {
-            image.gameObject.SetActive(true);
+            UI.gameObject.SetActive(true);
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                interactable.InvokeInteract();
+            }
         }
     }
 
     private void OnCollisionExit(Collision collision)
     {
-        image.gameObject.SetActive(false);
+        UI.gameObject.SetActive(false);
     }
 }

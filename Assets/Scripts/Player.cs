@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
 
     [SerializeField] private Camera _camera;
 
-    void Start()
+    private void Start()
     {
         _controller = GetComponent<CharacterController>();
         _prevPos = transform.position;
@@ -34,7 +34,7 @@ public class Player : MonoBehaviour
         Cursor.visible = false;
     }
 
-    void Update()
+    private void Update()
     {
         // бег
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
