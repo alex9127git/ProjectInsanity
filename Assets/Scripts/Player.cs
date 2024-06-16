@@ -2,7 +2,7 @@
 
 [RequireComponent(typeof(CharacterController))]
 
-public class SC_FPSController : MonoBehaviour
+public class Player : MonoBehaviour
 {
     private const float _walkingSpeed = 7.5f;
     private const float _runningSpeed = 11.5f;
